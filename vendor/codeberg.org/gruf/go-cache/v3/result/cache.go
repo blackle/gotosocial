@@ -1,6 +1,7 @@
 package result
 
 import (
+	"context"
 	"reflect"
 	"time"
 
@@ -158,7 +159,7 @@ func (c *Cache[Value]) Load(lookup string, load func() (Value, error), keyParts 
 	// Done with lock
 	c.cache.Unlock()
 
-	if !ok {
+	if !ok || res.Error == context.Canceled {
 		// Generate new result from fresh load.
 		res.Value, res.Error = load()
 
