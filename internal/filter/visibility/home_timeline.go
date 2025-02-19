@@ -24,7 +24,6 @@ import (
 
 	"github.com/superseriousbusiness/gotosocial/internal/cache"
 	"github.com/superseriousbusiness/gotosocial/internal/db"
-	"github.com/superseriousbusiness/gotosocial/internal/gtscontext"
 	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/log"
@@ -99,83 +98,83 @@ func (f *Filter) isStatusHomeTimelineable(ctx context.Context, owner *gtsmodel.A
 		return true, nil
 	}
 
-	var (
-		// iterated-over
-		// loop status.
-		next = status
+	// var (
+	// 	// iterated-over
+	// 	// loop status.
+	// 	next = status
 
-		// assume one author
-		// until proven otherwise.
-		oneAuthor = true
-	)
+	// 	// assume one author
+	// 	// until proven otherwise.
+	// 	oneAuthor = true
+	// )
 
-	for {
-		// Populate account mention objects before account mention checks.
-		next.Mentions, err = f.state.DB.GetMentions(ctx, next.MentionIDs)
-		if err != nil {
-			return false, gtserror.Newf("error populating status %s mentions: %w", next.ID, err)
-		}
+	// for {
+	// 	// Populate account mention objects before account mention checks.
+	// 	next.Mentions, err = f.state.DB.GetMentions(ctx, next.MentionIDs)
+	// 	if err != nil {
+	// 		return false, gtserror.Newf("error populating status %s mentions: %w", next.ID, err)
+	// 	}
 
-		if (next.AccountID == owner.ID) ||
-			next.MentionsAccount(owner.ID) {
-			// Owner is in / mentioned in
-			// this status thread. They can
-			// see future visible statuses.
-			visible = true
-			break
-		}
+	// 	if (next.AccountID == owner.ID) ||
+	// 		next.MentionsAccount(owner.ID) {
+	// 		// Owner is in / mentioned in
+	// 		// this status thread. They can
+	// 		// see future visible statuses.
+	// 		visible = true
+	// 		break
+	// 	}
 
-		var notVisible bool
+	// 	var notVisible bool
 
-		// Check whether status in conversation is explicitly relevant to timeline
-		// owner (i.e. includes mutals), or is explicitly invisible (i.e. blocked).
-		visible, notVisible, err = f.isVisibleConversation(ctx, owner, next)
-		if err != nil {
-			return false, gtserror.Newf("error checking conversation visibility: %w", err)
-		}
+	// 	// Check whether status in conversation is explicitly relevant to timeline
+	// 	// owner (i.e. includes mutals), or is explicitly invisible (i.e. blocked).
+	// 	visible, notVisible, err = f.isVisibleConversation(ctx, owner, next)
+	// 	if err != nil {
+	// 		return false, gtserror.Newf("error checking conversation visibility: %w", err)
+	// 	}
 
-		if notVisible {
-			log.Tracef(ctx, "conversation not visible to timeline owner")
-			return false, nil
-		}
+	// 	if notVisible {
+	// 		log.Tracef(ctx, "conversation not visible to timeline owner")
+	// 		return false, nil
+	// 	}
 
-		if visible {
-			// Conversation relevant
-			// to timeline owner!
-			break
-		}
+	// 	if visible {
+	// 		// Conversation relevant
+	// 		// to timeline owner!
+	// 		break
+	// 	}
 
-		if oneAuthor {
-			// Check if this continues to be a single-author thread.
-			oneAuthor = (next.AccountID == status.AccountID)
-		}
+	// 	if oneAuthor {
+	// 		// Check if this continues to be a single-author thread.
+	// 		oneAuthor = (next.AccountID == status.AccountID)
+	// 	}
 
-		if next.InReplyToURI == "" {
-			// Reached the top of the thread.
-			break
-		}
+	// 	if next.InReplyToURI == "" {
+	// 		// Reached the top of the thread.
+	// 		break
+	// 	}
 
-		// Check parent is deref'd.
-		if next.InReplyToID == "" {
-			log.Debugf(ctx, "status not (yet) deref'd: %s", next.InReplyToURI)
-			return false, cache.SentinelError
-		}
+	// 	// Check parent is deref'd.
+	// 	if next.InReplyToID == "" {
+	// 		log.Debugf(ctx, "status not (yet) deref'd: %s", next.InReplyToURI)
+	// 		return false, cache.SentinelError
+	// 	}
 
-		// Fetch next parent in conversation.
-		inReplyToID := next.InReplyToID
-		next, err = f.state.DB.GetStatusByID(
-			gtscontext.SetBarebones(ctx),
-			inReplyToID,
-		)
-		if err != nil {
-			return false, gtserror.Newf("error getting status parent %s: %w", inReplyToID, err)
-		}
-	}
+	// 	// Fetch next parent in conversation.
+	// 	inReplyToID := next.InReplyToID
+	// 	next, err = f.state.DB.GetStatusByID(
+	// 		gtscontext.SetBarebones(ctx),
+	// 		inReplyToID,
+	// 	)
+	// 	if err != nil {
+	// 		return false, gtserror.Newf("error getting status parent %s: %w", inReplyToID, err)
+	// 	}
+	// }
 
-	if next != status && !oneAuthor && !visible {
-		log.Trace(ctx, "ignoring visible reply in conversation irrelevant to owner")
-		return false, nil
-	}
+	// if next != status && !oneAuthor && !visible {
+	// 	log.Trace(ctx, "ignoring visible reply in conversation irrelevant to owner")
+	// 	return false, nil
+	// }
 
 	// At this point status is either a top-level status, a reply in a single
 	// author thread (e.g. "this is my weird-ass take and here is why 1/10 🧵"),

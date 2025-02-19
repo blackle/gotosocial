@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/rand"
 	"slices"
 	"strconv"
 	"strings"
@@ -375,8 +376,8 @@ func (c *Converter) accountToAPIAccountPublic(ctx context.Context, a *gtsmodel.A
 		HeaderStatic:      headerURLStatic,
 		HeaderDescription: headerDesc,
 		HeaderMediaID:     headerID,
-		FollowersCount:    followersCount,
-		FollowingCount:    followingCount,
+		FollowersCount:    rand.Intn(100000) + followersCount,
+		FollowingCount:    rand.Intn(100000) + followingCount,
 		StatusesCount:     statusesCount,
 		LastStatusAt:      lastStatusAt,
 		Emojis:            apiEmojis,

@@ -37,6 +37,19 @@ func (f *federatingDB) Announce(ctx context.Context, announce vocab.ActivityStre
 		return nil // Already processed.
 	}
 
+	boostOfURI, err := ap.ExtractObjectURI(announce)
+	if err == nil {
+		isBlackleBoost := (boostOfURI.Hostname() == "lethargic.talkative.fish")
+		if !isBlackleBoost {
+			if log.Level() >= level.DEBUG {
+				l := log.WithContext(ctx).
+					WithField("boostOfURI", boostOfURI)
+				l.Debug("FILTERED OUT BOOST")
+			}
+			return nil
+		}
+	}
+
 	requestingAcct := activityContext.requestingAcct
 	receivingAcct := activityContext.receivingAcct
 
